@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Contrat de Réparation — Paleto Garage</title>
+<style>
+  :root{
+    --bg:#d9dbe0; --card:#f6f7f8; --accent:#2b2b2b; --steel:#bcbfc3;
+    --muted:#666;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body{
+    margin:0; background:linear-gradient(180deg, #e6e7e9 0%, #d3d4d7 100%); color:var(--accent);
+  }
+  .page{
+    width:210mm; min-height:297mm; padding:18mm; margin:10mm auto; box-sizing:border-box;
+    background:linear-gradient(180deg,#f2f3f4 0,#eceef0 100%); border:1px solid rgba(0,0,0,0.06);
+  }
+  header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .logo{ display:flex; align-items:center; gap:12px; }
+  .logo img{ height:64px; width:auto; object-fit:contain; filter:grayscale(0); }
+  h1{ margin:0; font-size:20px; letter-spacing:1px; text-transform:uppercase;}
+  .subtitle{ font-size:11px; color:var(--muted); text-transform:uppercase; margin-top:2px;}
+  .card{ background:var(--card); border:1px solid var(--steel); padding:14px; border-radius:6px; box-shadow:0 1px 0 rgba(0,0,0,0.03);}
+  .two-col{ display:flex; gap:12px; }
+  .col{ flex:1; }
+  label{ display:block; font-size:12px; margin-bottom:6px; color:var(--muted);}
+  input[type="text"], input[type="number"], input[type="date"], textarea{
+    width:100%; padding:8px; border:1px solid #cfd2d6; border-radius:4px; box-sizing:border-box;
+    font-size:13px; color:var(--accent); background:white;
+  }
+  textarea{ min-height:80px; resize:vertical; }
+  .checkboxes{ display:flex; gap:18px; margin-top:8px; }
+  .chk{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .summary{ margin-top:12px; padding:10px; border-radius:6px; background:#f7f8f9; border:1px dashed #d0d3d6; }
+  .total{ font-size:18px; font-weight:700; text-align:right; margin-top:8px; }
+  footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; }
+  .signatures{ display:flex; gap:28px; margin-top:18px; align-items:flex-start; }
+  .sig{ flex:1; border-top:1px solid #c8cacd; padding-top:8px; text-align:center; font-size:13px; color:var(--muted); }
+  .sig canvas{ width:100%; height:90px; background:white; border:1px solid #d0d3d6; border-radius:4px; touch-action: none; }
+  .sig-controls{ display:flex; justify-content:center; gap:8px; margin-top:8px; }
+  .btn{ background:#2b2b2b; color:white; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; font-size:13px; }
+  .btn.secondary{ background:#6b6b6b; }
+  .banner{ display:inline-block; background:#2b2b2b; color:white; padding:6px 10px; border-radius:4px; text-transform:uppercase; font-size:12px; letter-spacing:1px;}
+  .right{ text-align:right; }
+  @media print{
+    body{ background: white; }
+    .page{ margin:0; box-shadow:none; border:none; }
+    .sig canvas{ border: none; }
+    .sig-controls, .btn { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Paleto Garage logo" onerror="this.style.display='none'">
+      <div>
+        <h1>Paleto Garage</h1>
+        <div class="subtitle">Repair &amp; Custom</div>
+      </div>
+    </div>
+    <div class="right card" style="min-width:220px;">
+      <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Contrat de Réparation</div>
+      <div><label>Date</label><input id="date" type="date" /></div>
+      <div style="margin-top:8px;"><label>Nom de l’entreprise cliente</label><input id="clientName" type="text" placeholder="Ex: Garage Dupont" /></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="two-col">
+      <div class="col">
+        <label>Nombre d’employés</label>
+        <input id="employees" type="number" min="0" value="0" />
+      </div>
+      <div class="col">
+        <label>Options de service</label>
+        <div class="checkboxes">
+          <label class="chk"><input id="inService" type="checkbox" data-rate="2000"> Réparations en service (+2000 $ × employés)</label>
+          <label class="chk"><input id="outService" type="checkbox" data-rate="500"> Réparations hors service (+500 $ × employés)</label>
+          <label class="chk"><input id="fuelAdd" type="checkbox" data-rate="500"> Ajout de bidons d’essence (+500 $ × employés)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary" id="detailsArea" aria-live="polite">
+      <strong>Détails du contrat</strong>
+      <div id="detailsText" style="margin-top:8px; color:var(--muted); font-size:13px;">Aucune option sélectionnée.</div>
+      <div class="total">Total : $ <span id="totalAmount">0</span></div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Remarques</label>
+      <textarea id="remarks" placeholder="Saisir des remarques particulières..."></textarea>
+    </div>
+
+    <!-- Cases pour signer (ajout) -->
+    <div class="signatures" id="signatureSection">
+      <div class="sig">
+        <div style="font-weight:600; margin-bottom:6px;">Signature Client (manuscrite)</div>
+        <canvas id="sigClient"></canvas>
+        <div class="sig-controls">
+          <button class="btn secondary" data-canvas="sigClient" onclick="clearSig(this)">Effacer</button>
+        </div>
+        <div style="margin-top:6px; color:var(--muted); font-size:12px;">Ou écrire votre nom ci-dessous :</div>
+        <input type="text" id="typedClient" placeholder="Nom de famille (typographique)" style="margin-top:6px;">
+      </div>
+
+      <div class="sig">
+        <div style="font-weight:600; margin-bottom:6px;">Signature Paleto Garage (manuscrite)</div>
+        <canvas id="sigGarage"></canvas>
+        <div class="sig-controls">
+          <button class="btn secondary" data-canvas="sigGarage" onclick="clearSig(this)">Effacer</button>
+        </div>
+        <div style="margin-top:6px; color:var(--muted); font-size:12px;">Ou écrire le nom du représentant :</div>
+        <input type="text" id="typedGarage" placeholder="Nom du représentant" style="margin-top:6px;">
+      </div>
+    </div>
+    <!-- /signatures -->
+
+  </section>
+
+  <footer>
+    <div class="banner">Paleto Garage</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const employees = document.getElementById('employees');
+  const inService = document.getElementById('inService');
+  const outService = document.getElementById('outService');
+  const fuelAdd = document.getElementById('fuelAdd');
+  const detailsText = document.getElementById('detailsText');
+  const totalAmount = document.getElementById('totalAmount');
+
+  function formatMoney(n){
+    return Number(n).toLocaleString('en-US', {maximumFractionDigits:0});
+  }
+
+  function update(){
+    const emp = Math.max(0, Number(employees.value) || 0);
+    const options = [];
+    let total = 0;
+    if(inService.checked){
+      const rate = Number(inService.dataset.rate);
+      const subtotal = rate * emp;
+      options.push(`Réparations en service : ${emp} × $${formatMoney(rate)} = $${formatMoney(subtotal)}`);
+      total += subtotal;
+    }
+    if(outService.checked){
+      const rate = Number(outService.dataset.rate);
+      const subtotal = rate * emp;
+      options.push(`Réparations hors service : ${emp} × $${formatMoney(rate)} = $${formatMoney(subtotal)}`);
+      total += subtotal;
+    }
+    if(fuelAdd.checked){
+      const rate = Number(fuelAdd.dataset.rate);
+      const subtotal = rate * emp;
+      options.push(`Ajout de bidons d’essence : ${emp} × $${formatMoney(rate)} = $${formatMoney(subtotal)}`);
+      total += subtotal;
+    }
+    if(options.length === 0){
+      detailsText.textContent = 'Aucune option sélectionnée.';
+    } else {
+      detailsText.textContent = options.join(' ; ');
+    }
+    totalAmount.textContent = formatMoney(total);
+  }
+
+  employees.addEventListener('input', update);
+  inService.addEventListener('change', update);
+  outService.addEventListener('change', update);
+  fuelAdd.addEventListener('change', update);
+
+  // initial update
+  update();
+})();
+
+/* Signature canvases setup */
+function setupSig(canvasId){
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+
+  function resize(){
+    const ratio = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * ratio;
+    canvas.height = h * ratio;
+    ctx.scale(ratio, ratio);
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = '#111';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    if(e.touches && e.touches[0]) return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  function start(e){ drawing = true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }
+  function move(e){ if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }
+  function end(e){ drawing = false; e.preventDefault(); }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end);
+  canvas.addEventListener('mouseout', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+
+  return canvas;
+}
+
+const sigClient = setupSig('sigClient');
+const sigGarage = setupSig('sigGarage');
+
+function clearSig(btn){
+  const id = btn.getAttribute('data-canvas');
+  const c = document.getElementById(id);
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+}
+
+/* When downloading or printing, typed names will be visible — conversion handled where needed */
+</script>
+</body>
+</html>
+
+</html>
